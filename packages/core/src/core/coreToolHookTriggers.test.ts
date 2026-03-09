@@ -38,7 +38,7 @@ class MockInvocation extends BaseToolInvocation<{ key?: string }, ToolResult> {
   }
 }
 
-class MockPidInvocation extends BaseToolInvocation<
+class MockBackgroundableInvocation extends BaseToolInvocation<
   { key?: string },
   ToolResult
 > {
@@ -52,9 +52,9 @@ class MockPidInvocation extends BaseToolInvocation<
     _signal: AbortSignal,
     _updateOutput?: (output: ToolLiveOutput) => void,
     _shellExecutionConfig?: unknown,
-    setPidCallback?: (pid: number) => void,
+    setExecutionIdCallback?: (executionId: number) => void,
   ) {
-    setPidCallback?.(4242);
+    setExecutionIdCallback?.(4242);
     return {
       llmContent: 'pid',
       returnDisplay: 'pid',
@@ -284,10 +284,10 @@ describe('executeToolWithHooks', () => {
     expect(mockTool.build).not.toHaveBeenCalled();
   });
 
-  it('should pass pid callback through for non-shell invocations', async () => {
-    const invocation = new MockPidInvocation({}, messageBus);
+  it('should pass execution ID callback through for non-shell invocations', async () => {
+    const invocation = new MockBackgroundableInvocation({}, messageBus);
     const abortSignal = new AbortController().signal;
-    const setPidCallback = vi.fn();
+    const setExecutionIdCallback = vi.fn();
 
     vi.mocked(mockHookSystem.fireBeforeToolEvent).mockResolvedValue(undefined);
     vi.mocked(mockHookSystem.fireAfterToolEvent).mockResolvedValue(undefined);
@@ -299,10 +299,10 @@ describe('executeToolWithHooks', () => {
       mockTool,
       undefined,
       undefined,
-      setPidCallback,
+      setExecutionIdCallback,
       mockConfig,
     );
 
-    expect(setPidCallback).toHaveBeenCalledWith(4242);
+    expect(setExecutionIdCallback).toHaveBeenCalledWith(4242);
   });
 });
